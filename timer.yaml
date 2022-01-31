@@ -1,0 +1,79 @@
+esphome:
+  name: esp_timer
+  includes:
+    - timer.h
+
+esp32:
+  board: nodemcu-32s
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: ""
+
+ota:
+  password: ""
+
+wifi:
+  networks:
+    - ssid: "andy"
+      password: "*********"
+    - ssid: "andy-et"
+      password: "*********"
+
+
+captive_portal:
+
+globals:
+  - id: totalTime
+    type: int
+    restore_value: no
+    initial_value: '60'
+
+sensor:
+  - platform: custom
+    id: timerSensor
+    lambda: |-
+      App.register_component(my_timer);
+      return {my_timer};
+    sensors:
+      name: "Time left"
+
+number:
+  - platform: template
+    name: Set Time
+    mode: auto
+    id: setTimeNumber
+    max_value: 99
+    min_value: 0
+    initial_value: 60
+    step: 1
+    set_action:
+      lambda: !lambda "id(totalTime) = x; my_timer->reset();"
+
+switch:
+  - platform: template
+    id: runSwitch
+    name: Run
+    lambda: !lambda "return id(my_timer->isRunning);"
+    turn_on_action:
+      lambda: !lambda "my_timer->start();"
+    turn_off_action:
+      lambda: !lambda "my_timer->pause();"
+  - platform: template
+    id: finishedSwitch
+    name: Finished
+    lambda: !lambda "return my_timer->count == -1;"
+    turn_on_action:
+      lambda: !lambda "my_timer->stop();"
+    turn_off_action:
+      lambda: !lambda "my_timer->reset();"
+
+interval:
+  - interval: 1sec
+    then:
+      lambda: !lambda "my_timer->tick();"
