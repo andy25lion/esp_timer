@@ -4,8 +4,8 @@ using namespace esphome;
 class MyCustomComponent : public PollingComponent, public Sensor {
   private:
 
-  uint8_t digit1pins[7] = {18, 5, 17, 16, 4, 2, 15}; 
-  uint8_t digit2pins[7] = {33, 25, 26, 27, 14, 12, 13};
+  uint8_t digit1pins[7] = {15, 2, 4, 16, 17, 5, 18};//{18, 5, 17, 16, 4, 2, 15}; 
+  uint8_t digit2pins[7] = {13, 12, 14, 27, 26, 25, 33};//{33, 25, 26, 27, 14, 12, 13};
 
   uint8_t digits[10][7] = {
       {1, 1, 1, 1, 1, 1, 0}, //0
@@ -23,6 +23,7 @@ class MyCustomComponent : public PollingComponent, public Sensor {
   public:
   int count;
   bool isRunning;
+  bool isPowerOn;
 
   float get_setup_priority() const override { return esphome::setup_priority::AFTER_WIFI; }
 
@@ -33,6 +34,7 @@ class MyCustomComponent : public PollingComponent, public Sensor {
     }
     count = id(totalTime) * 60;
     isRunning = false;
+    isPowerOn = false;
   }  MyCustomComponent() : PollingComponent(1000) { }
 
   void loop() override {
@@ -43,6 +45,10 @@ class MyCustomComponent : public PollingComponent, public Sensor {
   }
 
   void tick() {
+    if (!isPowerOn) {
+      powerOff();
+      return;
+    }
     if (count >= 0) {
       display7SegmentNumber(count/60);
       if (isRunning)
@@ -57,8 +63,6 @@ class MyCustomComponent : public PollingComponent, public Sensor {
     int digit2 = number % 10;
     for (uint8_t i = 0; i < 7; i++) {
       digitalWrite(digit1pins[i], digits[digit1][i]);
-    }
-    for (uint8_t i = 0; i < 7; i++) {
       digitalWrite(digit2pins[i], digits[digit2][i]);
     }
   }
@@ -79,7 +83,38 @@ class MyCustomComponent : public PollingComponent, public Sensor {
   void reset() {
     count = id(totalTime) * 60;
   }
-  
+  void powerOff() {
+    for (uint8_t i = 0; i < 7; i++) {
+      digitalWrite(digit1pins[i], LOW);
+      digitalWrite(digit2pins[i], LOW);
+    }
+  }
+
+  void test() {
+    // if (count%2) {
+    //   for (uint8_t i = 0; i < 7; i++) {
+    //     pinMode(digit1pins[i], OUTPUT);
+    //     digitalWrite(digit1pins[i], LOW);
+    //     pinMode(digit2pins[i], OUTPUT);
+    //     digitalWrite(digit2pins[i], LOW);
+    //   }
+    // } else {
+    //   for (uint8_t i = 0; i < 7; i++) {
+    //     pinMode(digit1pins[i], INPUT);
+    //     digitalWrite(digit1pins[i], HIGH);
+    //     pinMode(digit2pins[i], INPUT);
+    //     digitalWrite(digit2pins[i], HIGH);
+    //   }
+    // }
+
+    for (uint8_t i = 0; i < 7; i++) {
+      digitalWrite(digit1pins[i], count%2);
+    }
+    for (uint8_t i = 0; i < 7; i++) {
+      digitalWrite(digit2pins[i], count%2);
+    }
+    count++;
+  }
 };
 
 

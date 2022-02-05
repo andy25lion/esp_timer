@@ -21,9 +21,9 @@ ota:
 wifi:
   networks:
     - ssid: "andy"
-      password: "*********"
+      password: "***********"
     - ssid: "andy-et"
-      password: "*********"
+      password: "**********"
 
 
 captive_portal:
@@ -72,6 +72,14 @@ switch:
       lambda: !lambda "my_timer->stop();"
     turn_off_action:
       lambda: !lambda "my_timer->reset();"
+  - platform: template
+    id: powerSwitch
+    name: Power
+    lambda: !lambda "return my_timer->isPowerOn;"
+    turn_on_action:
+      lambda: !lambda "my_timer->isPowerOn = true;"
+    turn_off_action:
+      lambda: !lambda "my_timer->isPowerOn = false;"
 
 interval:
   - interval: 1sec
